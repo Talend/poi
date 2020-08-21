@@ -366,10 +366,16 @@ public class XSSFSheetXMLHandler extends DefaultHandler {
 
                case NUMBER:
                    String n = value.toString();
-                   if (this.formatString != null && n.length() > 0)
-                       thisStr = formatter.formatRawCellContents(Double.parseDouble(n), this.formatIndex, this.formatString);
-                   else
+                   if (this.formatString != null && n.length() > 0) {
+                       if(!DateUtil.isADateFormat(this.formatIndex, this.formatString)) {
+                           java.text.DecimalFormat df = new java.text.DecimalFormat("#.####################################");
+                           thisStr = df.format(Double.parseDouble(n));
+                       }else{
+                           thisStr = formatter.formatRawCellContents(Double.parseDouble(n), this.formatIndex, this.formatString);
+                       }
+                   } else {
                        thisStr = n;
+                   }
                    break;
 
                default:

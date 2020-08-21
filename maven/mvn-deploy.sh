@@ -35,28 +35,28 @@
 #  </profiles>
 #
 #  Usage:
-#   1. ant dist
-#   2. cd build/dist
-#   3. ./mvn-deploy.sh 
+#   1. ant clean
+#   2. ant assemble
+#   3. cd build/dist/maven
+#   4. ../../../maven/mvn-deploy.sh
 
-M2_REPOSITORY=https://repository.apache.org/service/local/staging/deploy/maven2
-
-VERSION=@VERSION@
-DSTAMP=@DSTAMP@
+M2_REPOSITORY=https://artifacts-oss.talend.com/nexus/content/repositories/TalendOpenSourceRelease/
 
 for artifactId in poi poi-scratchpad poi-ooxml poi-examples poi-ooxml-schemas poi-excelant
 do
-  SENDS="-Dfile=$artifactId-$VERSION-$DSTAMP.jar"
-  SENDS="$SENDS -DpomFile=$artifactId-$VERSION.pom"
-  if [ -r $artifactId-$VERSION-sources-$DSTAMP.jar ]; then
-     SENDS="$SENDS -Dsources=$artifactId-$VERSION-sources-$DSTAMP.jar"
+  if [ -n "$1" ]; then
+    VERSION=$1
+  else
+    VERSION=4.1.2-20200821_modified_talend
   fi
-  if [ -r $artifactId-$VERSION-javadocs-$DSTAMP.jar ]; then
-     SENDS="$SENDS -Djavadoc=$artifactId-$VERSION-javadocs-$DSTAMP.jar"
-  fi
+  SENDS="-Dfile=$artifactId/$artifactId-$VERSION.jar"
+  SENDS="$SENDS -DpomFile=$artifactId/$artifactId-$VERSION.pom"
 
-  mvn gpg:sign-and-deploy-file \
-    -DrepositoryId=apache-releases -P apache-releases \
+  if [ -n "$MAVEN_SETTINGS" ]; then
+    MAVEN_SETTINGS_ARG="-s ${MAVEN_SETTINGS}"
+  fi
+  mvn deploy:deploy-file -B ${MAVEN_SETTINGS_ARG} \
+    -DrepositoryId=talend_nexus_deployment \
     -Durl=$M2_REPOSITORY \
     $SENDS
 done
